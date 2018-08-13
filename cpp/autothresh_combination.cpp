@@ -193,7 +193,7 @@ int main(int argc, char** argv )
 {
     if ( argc != 3 )
     {
-        printf("usage: DisplayImage.out <Image_Path>\n");
+        printf("usage: ./auto <Image_Path_Disparity> <Image_Path_Left> \n");
         return -1;
     }
     
