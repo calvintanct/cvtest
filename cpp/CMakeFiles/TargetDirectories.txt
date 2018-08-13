@@ -1,0 +1,3 @@
+/home/calvin/cvproject/cpp/CMakeFiles/rebuild_cache.dir
+/home/calvin/cvproject/cpp/CMakeFiles/auto.dir
+/home/calvin/cvproject/cpp/CMakeFiles/edit_cache.dir

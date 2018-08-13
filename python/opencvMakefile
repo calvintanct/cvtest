@@ -1,0 +1,14 @@
+
+# libs not found: ljpeg 
+LIBS=-L/usr/local/lib -lopencv_highgui -lopencv_imgproc -lopencv_calib3d \
+	-lopencv_core -lpng -ldmtx -lopencv_imgcodecs
+
+INCLUDES=
+DEFINES=-g
+OBJS=
+
+%.o: %.cpp
+	g++ $(INCLUDES) $(DEFINES) -c $<
+
+Dem: demhist.o $(OBJS)
+	g++ -o Dem demhist.o $(OBJS) $(LIBS)
