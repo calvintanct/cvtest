@@ -1,0 +1,41 @@
+Installation of OpenCV
+
+git clone from the opencv git
+
+cd ~/<my_working_directory>
+git clone https://github.com/opencv/opencv.git
+
+then
+
+cd ~/opencv
+mkdir build
+cd build
+
+# If you somehow forget to go inside the directory and press cmake, please delete your CMakeCache and cmake it again
+
+cmake -D CMAKE_BUILD_TYPE=Release -D CMAKE_INSTALL_PREFIX=/usr/local ..
+
+make -j7
+
+sudo make install
+
+
+
+FOR THE PROJECT CREATE A NEW FOLDERS
+
+Create a new CMakeLists.txt
+{start here}
+
+cmake_minimum_required(VERSION 2.8)
+project( DisplayImage )
+find_package( OpenCV REQUIRED )
+include_directories( ${OpenCV_INCLUDE_DIRS} )
+
+add_executable( auto autothresh_combination.cpp )
+
+target_link_libraries( auto ${OpenCV_LIBS} )
+
+{end here}
+
+and then cmake .
+make

@@ -1,3 +1,5 @@
+// Created by Calvin Tanudjaja
+
 #include <stdio.h>
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/highgui/highgui.hpp"
@@ -11,21 +13,20 @@ Mat image_disp, image_disp_gray;
 
 Mat thresh_dst;
 
-int disp_threshold= 44;
 int disp_threshold_pixel = 5000;
 int disp_threshold_min = 42;
 int disp_threshold_max = 46;
-int range = 5;
+int disp_range = 20;
 
 // For Canny Edges and Morphology
 Mat image_left, image_left_gray;
 Mat dst, detected_edges;
 Mat opening, kernel;
 
-int elmt_kernel_size=3;
+int elmt_kernel_size=50;
 
 int edgeThresh = 1;
-int lowThreshold;
+int lowThreshold = 30;
 int const max_lowThreshold = 100;
 int threshratio = 3;
 int kernel_size = 3;
@@ -35,7 +36,7 @@ int shape_mode=0;
 
 // For Combination
 Mat comb;
-int flag =0;
+Mat final_mask, final_image;
 
 
 void Combination(void)
@@ -47,6 +48,13 @@ void Combination(void)
             bitwise_and(thresh_dst, opening, comb);
 
             imshow("Combination", comb);
+
+            final_mask = Scalar::all(0);
+            final_mask.setTo(Scalar(0,0,255), comb);
+
+            // Show Final covered image
+            addWeighted(final_mask, 1, image_left, 1, 0, final_image);
+            imshow("Final Image", final_image);
         }
         
     }
@@ -83,11 +91,15 @@ void ThresholdMask(int, void*)
         }
     }
 
+    // Create a pointer to point at the data
     list<int>::iterator it = filtered_hist.begin();
+
+    // Maximum value should be the beginning of the data
     disp_threshold_max = *it;
 
     cout<<"List of filtered"<<endl;
 
+    // Deleting the list that is more than 10 and selecting the minimum value
     while(it != filtered_hist.end())
     {
         cout<<(*it)<<"  ";
@@ -96,7 +108,8 @@ void ThresholdMask(int, void*)
         {
             filtered_hist.erase(it);
         }
-        else if(i <= 10 & (disp_threshold_max - *it) < 20)
+        // Min value should be the last one or the least in 10 that is still in 20 disparity value distance with max
+        else if(i <= 10 & (disp_threshold_max - *it) < disp_range)
         {
             disp_threshold_min = *it;
         }
@@ -120,30 +133,20 @@ void ThresholdMask(int, void*)
     cout<<"disp_threshold_min = "<< disp_threshold_min <<endl;
     cout<<"disp_threshold_max = "<< disp_threshold_max <<endl;
 
-
-	// disp_threshold_min = disp_threshold;
-	// disp_threshold_max = disp_threshold+range;
-
 	if (disp_threshold_max>255)
 	{
 		disp_threshold_max=255;
 	}
 	
+    // First thresholding for maximum and below
 	threshold(image_disp_gray, thresh_dst, disp_threshold_max, 255, THRESH_TOZERO_INV);
+    // Second thresholding for minimum and above, make all binary
 	threshold(thresh_dst, thresh_dst, disp_threshold_min, 255, THRESH_BINARY);
-	// threshold(thresh_dst, thresh_dst, disp_threshold_max, 255, THRESH_BINARY_INV);
 
 	imshow("ThresholdMask", thresh_dst);
 
     // Combination
     Combination();
-
-    // if (opening.data) 
-    // {
-    //     bitwise_and(thresh_dst, opening, comb);
-
-    //     imshow("Combination", comb);
-    // }
 }
 
 void CannyThreshold(int, void*)
@@ -166,8 +169,6 @@ void CannyThreshold(int, void*)
     imshow( window_name, dst );
 
     Combination();
-
-
 }
 
 void Morph(int, void*)
@@ -186,14 +187,6 @@ void Morph(int, void*)
     // Combination
 
     Combination();
-
-    // if (thresh_dst.data) 
-    // {
-    //     bitwise_and(thresh_dst, opening, comb);
-
-    //     imshow("Combination", comb);
-    // }
-    
 }
 
 int main(int argc, char** argv )
@@ -218,8 +211,12 @@ int main(int argc, char** argv )
         return -1;
     }
 
-    // Create a matrix with the same size for final display
+    // Create a matrix with the same size for final canny edge display
     dst.create( image_left.size(), image_left.type() );
+
+    // Create a matrix with the same size for final canny edge display
+    final_mask.create( image_left.size(), image_left.type() );
+    final_image.create( image_left.size(), image_left.type() );
 
     // It is important to set and change to grayscale color
     cvtColor( image_left, image_left_gray, COLOR_BGR2GRAY );
@@ -235,11 +232,11 @@ int main(int argc, char** argv )
     // Create Trackbar is running on a function, so it will be forever looping
     createTrackbar( "Min Canny Threshold:", window_name, &lowThreshold, max_lowThreshold, CannyThreshold );
     createTrackbar( "Kernel Size Element:", "Dilation", &elmt_kernel_size, 100, Morph );
-    createTrackbar( "Kernel Shape 1 Rect 2 Shape 3 Ellipse", "Dilation", &shape_mode, 2, Morph );
+    createTrackbar( "Kernel Shape 0 Rect 1 Shape 2 Ellipse", "Dilation", &shape_mode, 2, Morph );
 
     // Create a Trackbar for user to enter disparity threshold
     createTrackbar( "Pixels Value ThresholdMask:", "ThresholdMask", &disp_threshold_pixel, 20000, ThresholdMask );
-    // createTrackbar( "Disparity Range:", "ThresholdMask", &range, 50, ThresholdMask );
+    createTrackbar( "Disparity Range:", "ThresholdMask", &disp_range, 100, ThresholdMask );
 
     // Initialize Threshold Function
     ThresholdMask(0,0);
@@ -247,9 +244,6 @@ int main(int argc, char** argv )
     // Initialize CannyThreshold and Morph Function
     CannyThreshold(0, 0);
     Morph(0,0);
-
-    // // Initialize Combining Function
-    // Combination(0,0);
 
     // Wait until user exit program by pressing a key
     waitKey(0);

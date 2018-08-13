@@ -1,0 +1,33 @@
+Installation of PCL
+
+sudo apt install libpcl-dev
+
+and then please make sure to have CMakeLists.txt that contains the compiling files
+
+{start here}
+
+cmake_minimum_required(VERSION 2.6 FATAL_ERROR)
+
+project(pcl_visualizer_viewports)
+
+find_package(PCL 1.2 REQUIRED)
+
+include_directories(${PCL_INCLUDE_DIRS})
+link_directories(${PCL_LIBRARY_DIRS})
+add_definitions(${PCL_DEFINITIONS})
+
+add_executable (pcl_visualizer_demo pcl_visualizer_demo.cpp)
+target_link_libraries (pcl_visualizer_demo ${PCL_LIBRARIES})
+
+
+{end here}
+
+This CMakeLists.txt is to get the demo of running application in PCL = pcl_visualizer_demo
+
+Please check this website
+http://pointclouds.org/documentation/tutorials/pcl_visualizer.php
+
+1. Create pcl_visualizer_demo.cpp
+2. cmake CMakeLists.txt
+3. make
+4. Run: ./pcl_visualizer_demo -s
